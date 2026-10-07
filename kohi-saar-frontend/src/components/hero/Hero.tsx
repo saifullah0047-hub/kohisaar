@@ -18,7 +18,10 @@ export function Hero({
   const videoRef = useRef<HTMLVideoElement>(null);
   useEffect(() => { const media = window.matchMedia("(min-width: 801px) and (prefers-reduced-motion: no-preference)"); const update = () => setCanPlayVideo(media.matches); update(); media.addEventListener("change", update); return () => media.removeEventListener("change", update); }, []);
   const playVideo = useCallback(() => {
-    void videoRef.current?.play().catch(() => undefined);
+    const video = videoRef.current;
+    if (!video) return;
+    video.muted = true;
+    void video.play().catch(() => undefined);
   }, []);
   useEffect(() => {
     if (canPlayVideo) playVideo();
@@ -36,6 +39,7 @@ export function Hero({
           playsInline
           preload="auto"
           poster={posterSrc ?? "/images/koh-hero-poster.jpg"}
+          onLoadedData={playVideo}
           onCanPlay={playVideo}
         >
           <source src={videoSrc} type="video/mp4" />

@@ -3,6 +3,7 @@ import { DrawerProvider } from "@/components/cart/DrawerProvider";
 import { MiniCartDrawer } from "@/components/cart/MiniCartDrawer";
 import { ToastProvider } from "@/components/ui/ToastProvider";
 import { AnalyticsTracker } from "@/components/analytics/AnalyticsTracker";
+import { ConsentBanner } from "@/components/analytics/ConsentBanner";
 
 export default function StorefrontLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
@@ -12,6 +13,7 @@ export default function StorefrontLayout({ children }: Readonly<{ children: Reac
           <AnalyticsTracker />
           {children}
           <MiniCartDrawer />
+          <ConsentBanner />
         </ToastProvider>
       </DrawerProvider>
     </CartProvider>

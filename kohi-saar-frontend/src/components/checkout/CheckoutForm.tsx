@@ -425,10 +425,7 @@ export function CheckoutForm({ onSubmitCheckout }: CheckoutFormProps) {
                     <span className="checkout-payment-option__check" aria-hidden="true" />
                   </label>
 
-                   <p className="checkout-payment-demo-note">
-                     Demo checkout is currently available through Cash on Delivery.
-                   </p>
-                </div>
+                 </div>
               </div>
             </section>
 

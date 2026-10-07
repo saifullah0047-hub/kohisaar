@@ -2,6 +2,7 @@ export type EcommerceEvent = "page_view" | "view_item" | "add_to_cart" | "begin_
 export interface AnalyticsItem { itemId: string; itemName: string; price?: number; quantity?: number; currency?: string; }
 export interface AnalyticsPayload { items?: AnalyticsItem[]; value?: number; currency?: string; order_id?: string; }
 export interface AnalyticsProvider { track: (event: EcommerceEvent, payload?: AnalyticsPayload) => void; }
+export type AnalyticsConsent = "granted" | "denied" | undefined;
 
 const defaultProvider: AnalyticsProvider = {
   track(event, payload) {
@@ -12,6 +13,7 @@ const defaultProvider: AnalyticsProvider = {
 };
 let provider = defaultProvider;
 const CONSENT_KEY = "kohi-saar-analytics-consent";
+export const ANALYTICS_CONSENT_CHANGE_EVENT = "kohi-saar-analytics-consent-change";
 let metaPixelId: string | undefined;
 let metaPixelProviderConfigured = false;
 let metaPixelInitializedId: string | undefined;
@@ -36,7 +38,15 @@ export function setAnalyticsConsent(granted: boolean) {
   try {
     if (typeof window !== "undefined") window.localStorage.setItem(CONSENT_KEY, granted ? "granted" : "denied");
     if (granted && metaPixelId) loadMetaPixel(metaPixelId);
+    if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent(ANALYTICS_CONSENT_CHANGE_EVENT, { detail: { granted } }));
   } catch { /* Analytics remains disabled when storage is unavailable. */ }
+}
+export function getAnalyticsConsent(): AnalyticsConsent {
+  try {
+    if (typeof window === "undefined") return undefined;
+    const consent = window.localStorage.getItem(CONSENT_KEY);
+    return consent === "granted" || consent === "denied" ? consent : undefined;
+  } catch { return undefined; }
 }
 export function hasAnalyticsConsent() { try { return typeof window !== "undefined" && window.localStorage.getItem(CONSENT_KEY) === "granted"; } catch { return false; } }
 

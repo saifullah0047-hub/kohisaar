@@ -13,7 +13,16 @@ import {
   ClipboardList,
   Calendar,
   CheckCircle2,
+  WalletCards,
 } from "lucide-react";
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 import { StatusBadge, LoadingState, ErrorState } from "@/components/admin/ui";
 import { adminApi } from "@/lib/admin-api";
 import { sanitizeImageSrc } from "@/lib/image-utils";
@@ -30,35 +39,27 @@ const PRODUCT_IMAGE_MAP: Record<string, string> = {
 };
 
 function resolveProductImage(productOrSlug: Product | string, name?: string): string {
-  let result = "/images/premium.jpeg";
-  if (typeof productOrSlug === "object") {
-    if (productOrSlug.images && productOrSlug.images.length > 0 && productOrSlug.images[0].src) {
-      result = productOrSlug.images[0].src;
-    } else {
-      result = resolveProductImage(productOrSlug.slug, productOrSlug.name);
-    }
-  } else {
-    const slug = productOrSlug;
-    if (PRODUCT_IMAGE_MAP[slug]) {
-      result = PRODUCT_IMAGE_MAP[slug];
-    } else {
-      const found = Object.entries(PRODUCT_IMAGE_MAP).find(
-        ([k]) => slug.includes(k) || k.includes(slug),
-      );
-      if (found) {
-        result = found[1];
-      } else if (name) {
-        const lower = name.toLowerCase();
-        if (lower.includes("100g") || lower.includes("100 g")) result = "/images/100 gram.jpeg";
-        else if (lower.includes("50g") || lower.includes("50 g")) result = "/images/50 gram.jpeg";
-        else if (lower.includes("30g") || lower.includes("30 g")) result = "/images/30 gram.jpeg";
-        else if (lower.includes("15g") || lower.includes("15 g")) result = "/images/15 gram.jpeg";
-        else if (lower.includes("8g") || lower.includes("8 g")) result = "/images/8 gram.jpeg";
-        else if (lower.includes("gold")) result = "/images/Gold grade.jpeg";
-      }
-    }
+  if (typeof productOrSlug !== "string") {
+    const image = productOrSlug.images?.[0]?.src;
+    return image ? sanitizeImageSrc(image) : resolveProductImage(productOrSlug.slug, productOrSlug.name);
   }
-  return sanitizeImageSrc(result);
+
+  const slug = productOrSlug;
+  let result = PRODUCT_IMAGE_MAP[slug];
+  if (!result) {
+    const found = Object.entries(PRODUCT_IMAGE_MAP).find(([key]) => slug.includes(key) || key.includes(slug));
+    result = found?.[1];
+  }
+  if (!result && name) {
+    const lower = name.toLowerCase();
+    if (lower.includes("100g") || lower.includes("100 g")) result = "/images/100 gram.jpeg";
+    else if (lower.includes("50g") || lower.includes("50 g")) result = "/images/50 gram.jpeg";
+    else if (lower.includes("30g") || lower.includes("30 g")) result = "/images/30 gram.jpeg";
+    else if (lower.includes("15g") || lower.includes("15 g")) result = "/images/15 gram.jpeg";
+    else if (lower.includes("8g") || lower.includes("8 g")) result = "/images/8 gram.jpeg";
+    else if (lower.includes("gold")) result = "/images/Gold grade.jpeg";
+  }
+  return sanitizeImageSrc(result ?? "/images/premium.jpeg");
 }
 
 /* ── Types ── */
@@ -237,6 +238,16 @@ export function AdminDashboard() {
     return auditLogs.slice(0, 6);
   }, [auditLogs]);
 
+  const chartData = useMemo(() => {
+    if (!data?.recentOrders || data.recentOrders.length === 0) return [];
+    const map = new Map<string, number>();
+    data.recentOrders.forEach((order) => {
+      const date = new Date(order.createdAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short" });
+      map.set(date, (map.get(date) ?? 0) + (Number(order.total) || 0));
+    });
+    return Array.from(map.entries()).map(([date, revenue]) => ({ date, revenue }));
+  }, [data]);
+
   const salesBuckets = useMemo(() => {
     const buckets = { today: 0, thisWeek: 0, lastWeek: 0, earlier: 0 };
     if (!data?.recentOrders) return buckets;
@@ -314,53 +325,51 @@ export function AdminDashboard() {
         </div>
       </header>
 
-      {/* ── 2. STAT ROW ── */}
-      <div className="adm-stat-row">
-        {/* Row 1: Secondary cards */}
-        <div className="adm-stat-row__secondary">
-          {/* Products */}
-          <Link href="/admin/products" className="adm-stat-card">
-            <span className="adm-stat-card__accent" aria-hidden="true" />
-            <div className="adm-stat-card__head">
-              <span className="adm-stat-card__badge" aria-hidden="true">
-                <Package size={18} strokeWidth={1.5} />
-              </span>
-              <span className="adm-stat-card__label">Products</span>
-            </div>
-            <span className="adm-stat-card__value">{formatLeadingZero(data.counts.products)}</span>
-            <span className="adm-stat-card__hairline" aria-hidden="true" />
-            <span className="adm-stat-card__delta">—</span>{/* DELTA PLACEHOLDER */}
-          </Link>
-
-          {/* Orders */}
-          <Link href="/admin/orders" className="adm-stat-card">
-            <span className="adm-stat-card__accent" aria-hidden="true" />
-            <div className="adm-stat-card__head">
-              <span className="adm-stat-card__badge" aria-hidden="true">
-                <ShoppingCart size={18} strokeWidth={1.5} />
-              </span>
-              <span className="adm-stat-card__label">Orders</span>
-            </div>
-            <span className="adm-stat-card__value">{formatLeadingZero(data.counts.orders)}</span>
-            <span className="adm-stat-card__hairline" aria-hidden="true" />
-            <span className="adm-stat-card__delta">—</span>{/* DELTA PLACEHOLDER */}
-          </Link>
-
-          {/* Customers */}
-          <Link href="/admin/customers" className="adm-stat-card">
-            <span className="adm-stat-card__accent" aria-hidden="true" />
-            <div className="adm-stat-card__head">
-              <span className="adm-stat-card__badge" aria-hidden="true">
-                <Users size={18} strokeWidth={1.5} />
-              </span>
-              <span className="adm-stat-card__label">Customers</span>
-            </div>
-            <span className="adm-stat-card__value">{formatLeadingZero(data.counts.customers)}</span>
-            <span className="adm-stat-card__hairline" aria-hidden="true" />
-            <span className="adm-stat-card__delta">—</span>{/* DELTA PLACEHOLDER */}
-          </Link>
+      {/* ── 2. REFINED METRIC STRIP ── */}
+      <section className="adm-metric-strip" aria-label="Key operational metrics">
+        <Link href="/admin/products" className="adm-metric-item">
+          <div className="adm-metric-item__header">
+            <span className="adm-metric-item__label">PRODUCTS</span>
+            <Package size={14} className="adm-metric-item__icon" strokeWidth={1.75} />
+          </div>
+          <div className="adm-metric-item__value">
+            {formatLeadingZero(data.counts.products)}
+          </div>
+          <div className="adm-metric-item__caption">Catalog</div>
+        </Link>
+        <Link href="/admin/orders" className="adm-metric-item">
+          <div className="adm-metric-item__header">
+            <span className="adm-metric-item__label">ORDERS</span>
+            <ShoppingCart size={14} className="adm-metric-item__icon" strokeWidth={1.75} />
+          </div>
+          <div className="adm-metric-item__value">
+            {formatLeadingZero(data.counts.orders)}
+          </div>
+          <div className="adm-metric-item__caption">This period</div>
+        </Link>
+        <Link href="/admin/customers" className="adm-metric-item">
+          <div className="adm-metric-item__header">
+            <span className="adm-metric-item__label">CUSTOMERS</span>
+            <Users size={14} className="adm-metric-item__icon" strokeWidth={1.75} />
+          </div>
+          <div className="adm-metric-item__value">
+            {formatLeadingZero(data.counts.customers)}
+          </div>
+          <div className="adm-metric-item__caption">Active</div>
+        </Link>
+        <div className="adm-metric-item adm-metric-item--static">
+          <div className="adm-metric-item__header">
+            <span className="adm-metric-item__label">REVENUE</span>
+            <span className="adm-metric-item__icon" aria-hidden="true">
+              <WalletCards size={14} strokeWidth={1.75} />
+            </span>
+          </div>
+          <div className="adm-metric-item__value">
+            {currencyCode} {revenueTotal.toLocaleString()}
+          </div>
+          <div className="adm-metric-item__caption">This period</div>
         </div>
-      </div>
+      </section>
 
       {/* ── 3 & 4. PRIMARY GRID: SALES PERFORMANCE + INVENTORY ── */}
       <div className="adm-grid-primary">
@@ -400,6 +409,63 @@ export function AdminDashboard() {
             </p>
           </div>
 
+          {/* Chart or Intentional Empty State */}
+          {chartData.length > 1 ? (
+            <div className="adm-chart-wrap">
+              <ResponsiveContainer width="100%" height={220}>
+                <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="salesGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#A88B55" stopOpacity={0.25} />
+                      <stop offset="95%" stopColor="#A88B55" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <XAxis
+                    dataKey="date"
+                    stroke="#969188"
+                    fontSize={11}
+                    tickLine={false}
+                    axisLine={{ stroke: "#DDD8CD" }}
+                  />
+                  <YAxis
+                    stroke="#969188"
+                    fontSize={11}
+                    tickLine={false}
+                    axisLine={false}
+                    tickFormatter={(v) => `${v}`}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "#191A17",
+                      borderColor: "#A88B55",
+                      color: "#F7F4EE",
+                      fontSize: 12,
+                      borderRadius: 4,
+                    }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="revenue"
+                    stroke="#A88B55"
+                    strokeWidth={2}
+                    fillOpacity={1}
+                    fill="url(#salesGradient)"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          ) : (
+            <div className="adm-sales-empty">
+              <div className="adm-sales-empty__graphic" aria-hidden="true">
+                <svg viewBox="0 0 400 60" fill="none" preserveAspectRatio="none" className="adm-sales-empty__svg">
+                  <path d="M0 45 Q 100 45, 200 45 T 400 45" stroke="var(--adm-border, #DDD8CD)" strokeWidth="1.5" strokeDasharray="4 4" />
+                  <circle cx="200" cy="45" r="3" fill="var(--adm-accent, #A88B55)" opacity="0.6" />
+                </svg>
+              </div>
+              <p className="adm-sales-empty__heading">No sales recorded yet</p>
+              <p className="adm-sales-empty__body">Your sales performance will appear here once customers begin purchasing.</p>
+            </div>
+          )}
           <div className="adm-sales-divider" aria-hidden="true" />
 
           {revenueTotal > 0 ? (
@@ -422,14 +488,7 @@ export function AdminDashboard() {
                 );
               })}
             </ul>
-          ) : (
-            <div className="adm-sales-empty">
-              <p className="adm-sales-empty__heading">No orders yet.</p>
-              <p className="adm-sales-empty__body">
-                Sales will appear here once orders begin.
-              </p>
-            </div>
-          )}
+          ) : null}
         </section>
 
         {/* Inventory Panel */}

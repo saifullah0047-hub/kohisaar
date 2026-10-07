@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { Plus, Edit2, Star, EyeOff, CheckCircle2 } from "lucide-react";
 import { adminApi, ApiError } from "@/lib/admin-api";
 import { sanitizeImageSrc } from "@/lib/image-utils";
@@ -283,12 +284,14 @@ export function ProductList() {
                 position: "relative",
               }}
             >
-              <img
+              <Image
                 src={imgSrc}
                 alt={p.name}
-                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                fill
+                sizes="40px"
+                style={{ objectFit: "cover" }}
                 onError={(e) => {
-                  (e.currentTarget as HTMLImageElement).src = "/images/premium.jpeg";
+                  e.currentTarget.src = "/images/premium.jpeg";
                 }}
               />
             </div>

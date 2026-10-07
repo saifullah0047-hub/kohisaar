@@ -6,6 +6,7 @@ import { availableQuantity, adjustInventory, inventoryHistory } from "../invento
 import { inventoryAdjustmentSchema, inventoryVariantParamsSchema } from "../inventory/inventory.schemas.js";
 import { validateBody } from "../../common/middleware/validate.js";
 import { z } from "zod";
+import { getMetaAnalytics, metaAnalyticsQuerySchema } from "../meta/meta.analytics.service.js";
 
 export const adminRouter = Router();
 adminRouter.use(requireAuthentication, requireRole("admin"));
@@ -34,6 +35,11 @@ adminRouter.get("/dashboard", asyncHandler(async (_request, response) => {
       recentOrders: recentOrders.map((order) => ({ ...order, total: Number(order.total) })),
     },
   });
+}));
+
+adminRouter.get("/analytics/meta", asyncHandler(async (request, response) => {
+  const query = metaAnalyticsQuerySchema.parse(request.query);
+  response.json({ data: await getMetaAnalytics(query) });
 }));
 
 adminRouter.get("/products", asyncHandler(async (_request, response) => {

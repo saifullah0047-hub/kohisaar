@@ -13,6 +13,8 @@ const envSchema = z.object({
   PAYMENT_PROVIDER: z.string().trim().min(1).optional(),
   PAYMENT_API_KEY: z.string().min(1).optional(),
   PAYMENT_WEBHOOK_SECRET: z.string().min(1).optional(),
+  META_PIXEL_ID: z.string().trim().min(1).optional(),
+  META_ACCESS_TOKEN: z.string().min(1).optional(),
   AUTH_JWT_SECRET: z.string().min(32).optional(),
   AUTH_SESSION_TTL_SECONDS: z.coerce.number().int().positive().default(86400),
 });

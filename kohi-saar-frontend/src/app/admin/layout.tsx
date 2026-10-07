@@ -57,9 +57,10 @@ const navGroups = [
     ],
   },
   {
-    label: "INSIGHTS",
+      label: "INSIGHTS",
     items: [
       { label: "Analytics", href: "/admin/analytics", icon: BarChart3 },
+      { label: "Meta Analytics", href: "/admin/meta-analytics", icon: BarChart3 },
     ],
   },
   {
