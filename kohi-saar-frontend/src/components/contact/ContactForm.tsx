@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import { fbqTrack } from "@/lib/meta-pixel";
 
 type FormValues = { name: string; email: string; phone: string; comment: string };
 type FormErrors = Partial<Record<keyof FormValues, string>>;
@@ -32,6 +33,7 @@ export function ContactForm() {
     setSubmitting(true);
     const subject = encodeURIComponent("Kohisaar Shilajit enquiry");
     const body = encodeURIComponent(`Name: ${values.name}\nEmail: ${values.email}\nPhone: ${values.phone || "Not provided"}\n\n${values.comment}`);
+    fbqTrack("Contact");
     window.location.href = `mailto:kohisaarshilajit@gmail.com?subject=${subject}&body=${body}`;
     setStatus("Your email app should open with your message ready to send.");
     setSubmitting(false);

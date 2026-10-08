@@ -4,6 +4,7 @@ import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { Footer } from "@/components/layout/Footer";
 import { Navbar } from "@/components/navigation/Navbar";
+import { fbqTrack } from "@/lib/meta-pixel";
 import type { AccountApi } from "@/types/account";
 
 interface RegisterFormProps {
@@ -67,6 +68,7 @@ export function RegisterForm({ api }: RegisterFormProps) {
       } else {
         throw new Error("Account API is not connected yet.");
       }
+      fbqTrack("CompleteRegistration");
     } catch {
       setSubmitError("We could not complete that request. Please try again later.");
     } finally {

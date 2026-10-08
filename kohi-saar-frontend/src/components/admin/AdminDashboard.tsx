@@ -48,7 +48,7 @@ function resolveProductImage(productOrSlug: Product | string, name?: string): st
   let result = PRODUCT_IMAGE_MAP[slug];
   if (!result) {
     const found = Object.entries(PRODUCT_IMAGE_MAP).find(([key]) => slug.includes(key) || key.includes(slug));
-    result = found?.[1];
+    if (found) result = found[1];
   }
   if (!result && name) {
     const lower = name.toLowerCase();

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useCart } from "@/components/cart/CartProvider";
 import type { CheckoutPayload, CheckoutSubmit, PaymentMethod } from "@/types/checkout";
-import { track } from "@/lib/analytics";
+import { hasAnalyticsConsent, track } from "@/lib/analytics";
 
 /* ────────────────────────────────────────────────────────────────── */
 /*  Constants                                                        */
@@ -144,6 +144,7 @@ export function CheckoutForm({ onSubmitCheckout }: CheckoutFormProps) {
 
     track("begin_checkout", { value: finalTotal, currency });
     setSubmitting(true);
+    const metaEventId = window.crypto.randomUUID();
 
     try {
       const submit =
@@ -156,6 +157,8 @@ export function CheckoutForm({ onSubmitCheckout }: CheckoutFormProps) {
               headers: {
                 "Content-Type": "application/json",
                 "x-cart-session": sessionToken ?? "",
+                "x-meta-event-id": metaEventId,
+                "x-analytics-consent": hasAnalyticsConsent() ? "granted" : "denied",
               },
               body: JSON.stringify({
                 customer: payload.customer,
@@ -190,7 +193,7 @@ export function CheckoutForm({ onSubmitCheckout }: CheckoutFormProps) {
               quantity: line.item.quantity,
               currency: line.currency,
             })),
-        });
+        }, metaEventId);
       }
 
        setOrderNumber(result.orderNumber);
@@ -694,6 +697,9 @@ function OrderConfirmation({ orderNumber }: { orderNumber: string }) {
         <div className="order-confirm__actions">
           <Link href="/account/orders" className="order-confirm__cta-primary">
             <span>View order</span><span aria-hidden="true">&rarr;</span>
+          </Link>
+          <Link href={`/track-order?orderNumber=${encodeURIComponent(orderNumber)}`} className="order-confirm__cta-secondary">
+            <span>Track your order</span><span aria-hidden="true">&rarr;</span>
           </Link>
           <Link href="/shop" className="order-confirm__cta-secondary" onClick={() => window.sessionStorage.removeItem(LAST_ORDER_KEY)}>
             Continue shopping <span aria-hidden="true">&rarr;</span>

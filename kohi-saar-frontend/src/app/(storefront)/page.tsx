@@ -2,6 +2,7 @@ import { Footer } from "@/components/layout/Footer";
 import { Navbar } from "@/components/navigation/Navbar";
 import { Hero } from "@/components/hero/Hero";
 import { BrandIntroductionSection, CampaignSection, FaqSection, FeaturedProductsSection, FinalCtaSection, JournalSection, QualityRitualSection } from "@/components/home/HomeSections";
+import { CertificatesSection } from "@/components/home/CertificatesSection";
 import { Suspense } from "react";
 
 export const revalidate = 300;
@@ -23,6 +24,7 @@ export default function HomePage() {
         <Suspense fallback={null}><FeaturedProductsSection /></Suspense>
         <CampaignSection />
         <QualityRitualSection />
+        <CertificatesSection />
         <Suspense fallback={null}><JournalSection /></Suspense>
         <Suspense fallback={null}><FaqSection /></Suspense>
         <FinalCtaSection />

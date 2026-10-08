@@ -9,6 +9,8 @@ import { useCart } from "@/components/cart/CartProvider";
 const links = [
   { label: "Home", href: "/" },
   { label: "Shop", href: "/shop" },
+  { label: "Certificates", href: "/#certificates" },
+  { label: "Track Order", href: "/track-order" },
   { label: "Our Story", href: "/story" },
   { label: "Journal", href: "/journal" },
   { label: "Contact", href: "/contact" },

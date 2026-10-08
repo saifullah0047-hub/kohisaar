@@ -4,8 +4,18 @@ import { Clock3, Mail, Phone } from "lucide-react";
 
 const footerGroups = [
   { title: "Shop", links: [{ label: "All Products", href: "/shop" }] },
-  { title: "Explore", links: [{ label: "Our Story", href: "/story" }, { label: "Journal", href: "/journal" }] },
   { title: "Support", links: [{ label: "Contact", href: "/contact" }, { label: "Account", href: "/account" }] },
+  {
+    title: "Quick Links",
+    links: [
+      { label: "Privacy Policy", href: "/privacy" },
+      { label: "Shipping & Delivery", href: "/shipping" },
+      { label: "Return & Refund Policy", href: "/returns" },
+      { label: "Terms & Conditions", href: "/terms" },
+      { label: "About Us", href: "/story" },
+      { label: "Journal", href: "/journal" },
+    ],
+  },
 ];
 
 export function Footer() {
@@ -56,7 +66,7 @@ export function Footer() {
             </div>
           </section>
           <nav className="site-footer__links" aria-label="Footer">
-            {footerGroups.map((group) => <div className="site-footer__group" key={group.title}><h3>{group.title}</h3>{group.links.map((link) => <Link key={link.href} href={link.href}>{link.label} <span aria-hidden="true">→</span></Link>)}</div>)}
+            {footerGroups.map((group) => <div className={group.title === "Quick Links" ? "site-footer__group site-footer__group--quick-links" : "site-footer__group"} key={group.title}><h3>{group.title}</h3>{group.links.map((link) => <Link key={link.href} href={link.href}>{link.label} <span aria-hidden="true">→</span></Link>)}</div>)}
           </nav>
         </div>
       </div>

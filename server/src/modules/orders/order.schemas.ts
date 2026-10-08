@@ -1,6 +1,9 @@
 import { z } from "zod";
 
 export const orderNumberParamsSchema = z.object({ orderNumber: z.string().trim().min(8).max(100) });
+export const publicOrderNumberParamsSchema = z.object({
+  orderNumber: z.string().trim().regex(/^KS-[0-9A-F]{20}$/i, "Order number format is invalid.").transform((value) => value.toUpperCase()),
+});
 export const createOrderSchema = z.object({
   customer: z.object({
     fullName: z.string().trim().min(2).max(200),
