@@ -142,7 +142,10 @@ async function fetchStats(windowStart: Date, windowEnd: Date) {
     const response = await fetch(url, { signal: controller.signal, headers: { Accept: "application/json" } });
     const body = await response.json().catch(() => null);
     if (!response.ok) {
-      if (response.status === 401 || response.status === 403) throw new AppError(502, "Meta analytics authorization failed.", "META_AUTHORIZATION_FAILED");
+      const metaErrorCode = body && typeof body === "object" && "error" in body && body.error && typeof body.error === "object" && "code" in body.error ? body.error.code : undefined;
+      if ((response.status === 400 && metaErrorCode === 100) || response.status === 401 || response.status === 403) {
+        throw new AppError(502, "Meta analytics authorization failed. Check the Pixel access token permissions.", "META_AUTHORIZATION_FAILED");
+      }
       if (response.status === 429) throw new AppError(503, "Meta analytics is temporarily rate limited.", "META_RATE_LIMITED");
       throw new AppError(502, "Meta analytics could not be retrieved.", "META_API_ERROR");
     }
